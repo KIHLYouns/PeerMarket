@@ -1,0 +1,205 @@
+// File: src/test/java/com/peersmarket/marketplace/MarketplaceApplicationTests.java
+package com.peersmarket.marketplace;
+
+import org.springframework.boot.test.context.SpringBootTest;
+
+import org.junit.jupiter.api.Test;
+
+@SpringBootTest
+class MarketplaceApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}
+
+
+
+// File: src/main/java/com/peersmarket/marketplace/MarketplaceApplication.java
+package com.peersmarket.marketplace;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class MarketplaceApplication {
+
+	public static void main(final String[] args) {
+		SpringApplication.run(MarketplaceApplication.class, args);
+	}
+}
+
+
+
+// File: src/main/java/com/peersmarket/marketplace/user/domain/model/AppUser.java
+package com.peersmarket.marketplace.user.domain.model;
+
+import java.time.LocalDate;
+
+
+import com.peersmarket.marketplace.shared.model.Email;
+import com.peersmarket.marketplace.shared.model.Password;
+import com.peersmarket.marketplace.shared.model.Location;
+
+
+public class AppUser {
+
+    private Long id;
+    private String username;
+    private Email email;
+    private Password password;
+    private String avatarUrl;
+    private String bio;
+    private LocalDate joinDate;
+    private UserStatus status;
+    private Address address;
+    
+}
+
+
+
+// File: src/main/java/com/peersmarket/marketplace/user/domain/model/Address.java
+package com.peersmarket.marketplace.user.domain.model;
+
+import com.peersmarket.marketplace.shared.exception.InvalidAddressException;
+
+public class Address {
+    private Long id;
+    private Long cityId;
+    private Double longitude;
+    private Double latitude;
+
+    private void validateCoordinates() {
+        if (latitude != null && (latitude < -90 || latitude > 90)) {
+            throw new InvalidAddressException("Latitude must be between -90 and 90");
+        }
+        if (longitude != null && (longitude < -180 || longitude > 180)) {
+            throw new InvalidAddressException("Longitude must be between -180 and 180");
+        }
+    }
+
+    public double distanceTo(Address other) {
+        if (this.latitude == null || this.longitude == null) {
+            throw new InvalidAddressException("Current address coordinates are missing");
+        }
+        if (other.latitude == null || other.longitude == null) {
+            throw new InvalidAddressException("Other address coordinates are missing");
+        }
+
+        final int R = 6371;
+
+        double latDistance = Math.toRadians(other.latitude - this.latitude);
+        double lonDistance = Math.toRadians(other.longitude - this.longitude);
+
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(this.latitude)) * Math.cos(Math.toRadians(other.latitude))
+                        * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c;
+    }
+}
+
+
+
+// File: src/main/java/com/peersmarket/marketplace/user/domain/model/UserStatus.java
+package com.peersmarket.marketplace.user.domain.model;
+
+public enum UserStatus {
+    PENDING_VERIFICATION,
+    ACTIVE,
+    SUSPENDED,
+    DELETED
+}
+
+
+// File: src/main/java/com/peersmarket/marketplace/shared/config/SecurityConfig.java
+package com.peersmarket.marketplace.shared.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(final HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
+    }
+}
+
+
+// File: src/main/java/com/peersmarket/marketplace/shared/model/Email.java
+package com.peersmarket.marketplace.shared.model;
+
+import com.peersmarket.marketplace.shared.exception.InvalidEmailException;
+
+public record Email(String value) {
+    public Email {
+        if (value == null || value.isBlank()) {
+            throw new InvalidEmailException("Email cannot be null or blank");
+        }
+        if (!value.matches("^[\\w-\\.]+@[\\w-]+\\.[a-z]{2,4}$")) {
+            throw new InvalidEmailException("Invalid email format");
+        }
+    }
+}
+
+
+// File: src/main/java/com/peersmarket/marketplace/shared/model/Password.java
+package com.peersmarket.marketplace.shared.model;
+
+public record Password(String value) {
+    public Password {
+        if (value == null || value.isBlank()) {
+            throw new InvalidPasswordException("Password cannot be null or blank");
+        }
+        if (value.length() < 8) {
+            throw new InvalidPasswordException("Password must be at least 8 characters long");
+        }
+    }
+}
+
+
+// File: src/main/java/com/peersmarket/marketplace/shared/exception/InvalidAddressException.java
+package com.peersmarket.marketplace.shared.exception;
+
+public class InvalidAddressException extends RuntimeException {
+    public InvalidAddressException(String message) {
+        super(message);
+    }
+}
+
+
+
+// File: src/main/java/com/peersmarket/marketplace/shared/exception/InvalidEmailException.java
+package com.peersmarket.marketplace.shared.exception;
+
+public class InvalidEmailException extends RuntimeException {
+
+    public InvalidEmailException(final String message) {
+        super(message);
+    }
+}
+
+
+
+// File: src/main/java/com/peersmarket/marketplace/shared/exception/InvalidPasswordException.java
+package com.peersmarket.marketplace.shared.exception;
+
+public class InvalidPasswordException extends RuntimeException {
+
+    public InvalidPasswordException(final String message) {
+        super(message);
+    }
+}
+
+
+

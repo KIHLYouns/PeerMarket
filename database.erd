@@ -1,0 +1,108 @@
+title PeersMarket
+notation chen
+colorMode outline
+styleMode plain
+
+// define tables
+City [icon: map-pin, color: blue]{
+  id int pk
+  name string
+}
+
+Category [icon: tag, color: orange]{
+  id int pk
+  name string
+}
+
+AppUser [icon: user, color: yellow]{
+  id int pk
+  username string
+  password string
+  email string
+  role enum
+  avatarUrl string
+  bio string
+  joinDate datetime
+  verified boolean
+  cityId int
+}
+
+Item [icon: box, color: green]{
+  id int pk
+  title string
+  description string
+  price decimal
+  condition enum
+  status enum
+  sellerId int
+  categoryId int
+  createdAt datetime
+}
+
+Image [icon: image, color: purple]{
+  id int pk
+  url string
+  itemId int
+}
+
+Conversation [icon: message-circle, color: teal]{
+  id int pk
+  createdAt datetime
+  updatedAt datetime
+  itemId int
+}
+
+Message [icon: mail, color: lightblue]{
+  id int pk
+  content string
+  timestamp datetime
+  senderId int
+  conversationId int
+  isRead boolean
+}
+
+Review [icon: star, color: gold]{
+  id int pk
+  rating int
+  comment string
+  reviewerId int
+  revieweeId int
+  createdAt datetime
+}
+
+SavedItem [icon: bookmark, color: pink]{
+  id int pk
+  userId int
+  itemId int
+  savedAt datetime
+}
+
+UserConversation [icon: users, color: gray]{
+  userId int pk
+  conversationId int pk
+}
+
+Notification [icon: bell, color: red]{
+  id int pk
+  userId int
+  message string
+  type string
+  isRead boolean
+  createdAt datetime
+}
+
+// define relationships
+Item.sellerId > AppUser.id
+Item.categoryId > Category.id
+Image.itemId > Item.id
+Message.senderId > AppUser.id
+Message.conversationId > Conversation.id
+Review.reviewerId > AppUser.id
+Review.revieweeId > AppUser.id
+SavedItem.userId > AppUser.id
+SavedItem.itemId > Item.id
+UserConversation.userId > AppUser.id
+UserConversation.conversationId > Conversation.id
+Notification.userId > AppUser.id: [color: black]
+AppUser.cityId > City.id
+Conversation.itemId > Item.id
