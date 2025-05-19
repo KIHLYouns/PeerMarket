@@ -50,6 +50,9 @@ Conversation [icon: message-circle, color: teal]{
   createdAt datetime
   updatedAt datetime
   itemId int
+  lastMessageContent string
+  lastMessageTimestamp datetime
+  lastMessageSenderId int
 }
 
 Message [icon: mail, color: lightblue]{

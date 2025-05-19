@@ -3,6 +3,7 @@ package com.peersmarket.marketplace.item.application.port.in;
 import java.util.List;
 import java.util.Optional;
 
+import com.peersmarket.marketplace.item.application.dto.ImageDto;
 import com.peersmarket.marketplace.item.application.dto.ItemDto;
 
 public interface ItemService {
@@ -14,4 +15,10 @@ public interface ItemService {
     List<ItemDto> searchItemsByTitle(String title);
     ItemDto updateItem(Long id, ItemDto itemDto);
     void deleteItem(Long id);
+
+    // Méthodes de gestion des images
+    ImageDto addItemImage(Long itemId, ImageDto imageDto);
+    void deleteItemImage(Long itemId, Long imageId);
+    List<ImageDto> getItemImages(Long itemId);
+    ItemDto addImagesToItem(Long itemId, List<ImageDto> imageDtos); // Nouvelle méthode pour ajouter plusieurs images
 }

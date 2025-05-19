@@ -11,4 +11,5 @@ public interface CategoryRepository {
     Optional<Category> findByNameIgnoreCase(String name);
     List<Category> findAll();
     void deleteById(Long id);
+    boolean existsById(Long id);
 }

@@ -2,11 +2,14 @@ package com.peersmarket.marketplace.item.application.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.peersmarket.marketplace.item.domain.model.ItemCondition;
 import com.peersmarket.marketplace.item.domain.model.ItemStatus;
 import com.peersmarket.marketplace.user.application.dto.AppUserDto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -45,4 +48,7 @@ public class ItemDto {
     private CategoryDto categoryInfo;
 
     private LocalDateTime createdAt;
+
+    @Valid
+    private List<ImageDto> images = new ArrayList<>();
 }
