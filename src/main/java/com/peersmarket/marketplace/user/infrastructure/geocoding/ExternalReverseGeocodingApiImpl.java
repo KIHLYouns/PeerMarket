@@ -42,8 +42,7 @@ public class ExternalReverseGeocodingApiImpl implements ReverseGeocoding {
                                     .orElse(null);
 
             if (cityName != null) {
-                final City city = new City();
-                city.setName(cityName);
+                final City city = new City(cityName);
                 return Optional.of(city);
             }
         } catch (final Exception e) {

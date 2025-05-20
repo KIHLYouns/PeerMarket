@@ -4,6 +4,10 @@ public class City {
     private Long id;
     private String name;
 
+    public City(String name) {
+        this.name = name;
+    }
+
     public Long getId() {
         return id;
     }
