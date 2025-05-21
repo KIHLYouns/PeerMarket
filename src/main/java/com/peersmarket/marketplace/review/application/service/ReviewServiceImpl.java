@@ -4,7 +4,6 @@ import com.peersmarket.marketplace.review.application.dto.CreateReviewRequestDto
 import com.peersmarket.marketplace.review.application.dto.ReviewDto;
 import com.peersmarket.marketplace.review.application.port.in.ReviewService;
 import com.peersmarket.marketplace.review.application.port.out.ReviewRepository;
-import com.peersmarket.marketplace.review.domain.exception.ReviewNotFoundException;
 import com.peersmarket.marketplace.review.domain.model.Review;
 import com.peersmarket.marketplace.review.infrastructure.persistence.jpa.mapper.ReviewMapper;
 import com.peersmarket.marketplace.user.application.port.out.AppUserRepository; // Assurez-vous que le chemin est correct

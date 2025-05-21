@@ -16,6 +16,8 @@ import com.peersmarket.marketplace.user.domain.model.AppUser;
 import com.peersmarket.marketplace.user.domain.model.AppUserRole;
 import com.peersmarket.marketplace.user.domain.model.City;
 import com.peersmarket.marketplace.review.domain.model.Review;
+import com.peersmarket.marketplace.saveditem.application.port.out.SavedItemRepository;
+import com.peersmarket.marketplace.saveditem.domain.model.SavedItem;
 import com.peersmarket.marketplace.shared.model.Email;
 import com.peersmarket.marketplace.shared.model.Password;
 import com.peersmarket.marketplace.conversation.application.port.out.ConversationRepository;
@@ -24,7 +26,6 @@ import com.peersmarket.marketplace.message.application.port.out.MessageRepositor
 import com.peersmarket.marketplace.message.domain.model.Message;
 // Supposons que vous avez une entité Address si AppUser a une relation avec Address
 // import com.peersmarket.marketplace.user.domain.model.Address;
-
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -47,15 +48,17 @@ public class DataInitializer implements CommandLineRunner {
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
     private final ReviewRepository reviewRepository;
+    private final SavedItemRepository savedItemRepository;
 
     public DataInitializer(AppUserRepository appUserRepository,
-                           CategoryRepository categoryRepository,
-                           ItemRepository itemRepository,
-                           ImageRepository imageRepository,
-                           CityRepository cityRepository,
-                           ConversationRepository conversationRepository,
-                           MessageRepository messageRepository,
-                           ReviewRepository reviewRepository) {
+            CategoryRepository categoryRepository,
+            ItemRepository itemRepository,
+            ImageRepository imageRepository,
+            CityRepository cityRepository,
+            ConversationRepository conversationRepository,
+            MessageRepository messageRepository,
+            ReviewRepository reviewRepository,
+            SavedItemRepository savedItemRepository) {
         this.appUserRepository = appUserRepository;
         this.categoryRepository = categoryRepository;
         this.itemRepository = itemRepository;
@@ -64,10 +67,8 @@ public class DataInitializer implements CommandLineRunner {
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
         this.reviewRepository = reviewRepository;
+        this.savedItemRepository = savedItemRepository;
     }
-
-
-
 
     @Override
     @Transactional
@@ -85,13 +86,13 @@ public class DataInitializer implements CommandLineRunner {
             System.out.println("Cities created or loaded.");
         }
 
-
         // 1. Users
         AppUser user1, user2, user3;
 
         Optional<AppUser> user1Opt = appUserRepository.findByUsername("AliceWonder");
         user1 = user1Opt.orElseGet(() -> {
-            AppUser u = new AppUser("AliceWonder", new Email("alice@example.com"), new Password("alicePass123!"), AppUserRole.USER);
+            AppUser u = new AppUser("AliceWonder", new Email("alice@example.com"), new Password("alicePass123!"),
+                    AppUserRole.USER);
             u.setBio("Passionnée de vintage et d'objets uniques.");
             u.setAvatarUrl("https://i.pravatar.cc/150?u=alice");
             u.setVerified(true);
@@ -103,7 +104,8 @@ public class DataInitializer implements CommandLineRunner {
 
         Optional<AppUser> user2Opt = appUserRepository.findByUsername("BobTheBuilder");
         user2 = user2Opt.orElseGet(() -> {
-            AppUser u = new AppUser("BobTheBuilder", new Email("bob@example.com"), new Password("bobSecurePass$"), AppUserRole.USER);
+            AppUser u = new AppUser("BobTheBuilder", new Email("bob@example.com"), new Password("bobSecurePass$"),
+                    AppUserRole.USER);
             u.setBio("Bricoleur du dimanche, vends outils et créations.");
             u.setAvatarUrl("https://i.pravatar.cc/150?u=bob");
             // Address address2 = new Address();
@@ -114,7 +116,8 @@ public class DataInitializer implements CommandLineRunner {
 
         Optional<AppUser> user3Opt = appUserRepository.findByUsername("CharlieChap");
         user3 = user3Opt.orElseGet(() -> {
-            AppUser u = new AppUser("CharlieChap", new Email("charlie@example.com"), new Password("charliePwd789"), AppUserRole.USER);
+            AppUser u = new AppUser("CharlieChap", new Email("charlie@example.com"), new Password("charliePwd789"),
+                    AppUserRole.USER);
             u.setBio("Collectionneur de chapeaux et accessoires.");
             u.setAvatarUrl("https://i.pravatar.cc/150?u=charlie");
             u.setVerified(true);
@@ -124,9 +127,8 @@ public class DataInitializer implements CommandLineRunner {
             return appUserRepository.save(u);
         });
         if (!user1Opt.isPresent() || !user2Opt.isPresent() || !user3Opt.isPresent()) {
-             System.out.println("Users created or loaded.");
+            System.out.println("Users created or loaded.");
         }
-
 
         // 2. Categories
         Category electronics, books, bikes;
@@ -143,9 +145,9 @@ public class DataInitializer implements CommandLineRunner {
             System.out.println("Categories created or loaded.");
         }
 
-
         // 3. Items & Images
-        // Pour les items, on va vérifier par titre pour éviter les doublons si on relance
+        // Pour les items, on va vérifier par titre pour éviter les doublons si on
+        // relance
         Optional<Item> item1Opt = itemRepository.findByTitleContaining("Super Vélo de Course").stream().findFirst();
         Item item1 = item1Opt.orElseGet(() -> {
             Item i = new Item(); // Supposant un constructeur par défaut et des setters
@@ -158,12 +160,15 @@ public class DataInitializer implements CommandLineRunner {
             i.setCategory(bikes);
             i.setCreatedAt(LocalDateTime.now().minusDays(5));
             Item savedItem = itemRepository.save(i);
-            imageRepository.save(new Image("https://placehold.co/600x400/FF0000/FFFFFF?text=Velo1_1.png", savedItem.getId()));
-            imageRepository.save(new Image("https://placehold.co/600x400/FF0000/FFFFFF?text=Velo1_2.png", savedItem.getId()));
+            imageRepository
+                    .save(new Image("https://placehold.co/600x400/FF0000/FFFFFF?text=Velo1_1.png", savedItem.getId()));
+            imageRepository
+                    .save(new Image("https://placehold.co/600x400/FF0000/FFFFFF?text=Velo1_2.png", savedItem.getId()));
             return savedItem;
         });
 
-        Optional<Item> item2Opt = itemRepository.findByTitleContaining("Roman 'Le Seigneur des Anneaux'").stream().findFirst();
+        Optional<Item> item2Opt = itemRepository.findByTitleContaining("Roman 'Le Seigneur des Anneaux'").stream()
+                .findFirst();
         Item item2 = item2Opt.orElseGet(() -> {
             Item i = new Item();
             i.setTitle("Roman 'Le Seigneur des Anneaux'");
@@ -175,11 +180,13 @@ public class DataInitializer implements CommandLineRunner {
             i.setCategory(books);
             i.setCreatedAt(LocalDateTime.now().minusDays(10));
             Item savedItem = itemRepository.save(i);
-            imageRepository.save(new Image("https://placehold.co/600x400/00FF00/FFFFFF?text=Livre1.png", savedItem.getId()));
+            imageRepository
+                    .save(new Image("https://placehold.co/600x400/00FF00/FFFFFF?text=Livre1.png", savedItem.getId()));
             return savedItem;
         });
 
-        Optional<Item> item3Opt = itemRepository.findByTitleContaining("Casque Audio Bluetooth XYZ").stream().findFirst();
+        Optional<Item> item3Opt = itemRepository.findByTitleContaining("Casque Audio Bluetooth XYZ").stream()
+                .findFirst();
         Item item3 = item3Opt.orElseGet(() -> {
             Item i = new Item();
             i.setTitle("Casque Audio Bluetooth XYZ");
@@ -191,7 +198,8 @@ public class DataInitializer implements CommandLineRunner {
             i.setCategory(electronics);
             i.setCreatedAt(LocalDateTime.now().minusDays(2));
             Item savedItem = itemRepository.save(i);
-            imageRepository.save(new Image("https://placehold.co/600x400/0000FF/FFFFFF?text=Casque1.png", savedItem.getId()));
+            imageRepository
+                    .save(new Image("https://placehold.co/600x400/0000FF/FFFFFF?text=Casque1.png", savedItem.getId()));
             return savedItem;
         });
 
@@ -207,19 +215,20 @@ public class DataInitializer implements CommandLineRunner {
             i.setCategory(bikes);
             i.setCreatedAt(LocalDateTime.now().minusDays(1));
             Item savedItem = itemRepository.save(i);
-            imageRepository.save(new Image("https://placehold.co/600x400/FFFF00/000000?text=VTT1.png", savedItem.getId()));
+            imageRepository
+                    .save(new Image("https://placehold.co/600x400/FFFF00/000000?text=VTT1.png", savedItem.getId()));
             return savedItem;
         });
-         if (!item1Opt.isPresent() || !item2Opt.isPresent() || !item3Opt.isPresent() || !item4Opt.isPresent()) {
+        if (!item1Opt.isPresent() || !item2Opt.isPresent() || !item3Opt.isPresent() || !item4Opt.isPresent()) {
             System.out.println("Items and Images created or loaded.");
         }
 
-
         // 4. Conversations & Messages
         // Pour les conversations, on peut vérifier par item et participants
-        Optional<Conversation> conv1Opt = conversationRepository.findByItemIdAndUserIds(item1.getId(), user2.getId(), user1.getId());
+        Optional<Conversation> conv1Opt = conversationRepository.findByItemIdAndUserIds(item1.getId(), user2.getId(),
+                user1.getId());
         if (conv1Opt.isEmpty()) {
-             conv1Opt = conversationRepository.findByItemIdAndUserIds(item1.getId(), user1.getId(), user2.getId());
+            conv1Opt = conversationRepository.findByItemIdAndUserIds(item1.getId(), user1.getId(), user2.getId());
         }
 
         if (conv1Opt.isEmpty()) {
@@ -230,12 +239,17 @@ public class DataInitializer implements CommandLineRunner {
                     .updatedAt(LocalDateTime.now().minusDays(2))
                     .build();
             Conversation conv1 = conversationRepository.save(conv1ToSave); // Sauvegarder d'abord pour obtenir l'ID
-            
-            Message msg1_1 = Message.builder().conversation(conv1).sender(user2).content("Bonjour, votre vélo est-il toujours disponible ?").timestamp(LocalDateTime.now().minusDays(3).plusHours(1)).build();
+
+            Message msg1_1 = Message.builder().conversation(conv1).sender(user2)
+                    .content("Bonjour, votre vélo est-il toujours disponible ?")
+                    .timestamp(LocalDateTime.now().minusDays(3).plusHours(1)).build();
             messageRepository.save(msg1_1);
-            Message msg1_2 = Message.builder().conversation(conv1).sender(user1).content("Oui, toujours !").timestamp(LocalDateTime.now().minusDays(3).plusHours(2)).build();
+            Message msg1_2 = Message.builder().conversation(conv1).sender(user1).content("Oui, toujours !")
+                    .timestamp(LocalDateTime.now().minusDays(3).plusHours(2)).build();
             messageRepository.save(msg1_2);
-            Message msg1_3 = Message.builder().conversation(conv1).sender(user2).content("Super, possible de le voir ce week-end ?").timestamp(LocalDateTime.now().minusDays(2)).build();
+            Message msg1_3 = Message.builder().conversation(conv1).sender(user2)
+                    .content("Super, possible de le voir ce week-end ?").timestamp(LocalDateTime.now().minusDays(2))
+                    .build();
             messageRepository.save(msg1_3);
 
             conv1.setLastMessageContent(msg1_3.getContent());
@@ -246,10 +260,10 @@ public class DataInitializer implements CommandLineRunner {
             System.out.println("Conversation 1 and Messages created.");
         }
 
-
-        Optional<Conversation> conv2Opt = conversationRepository.findByItemIdAndUserIds(item2.getId(), user3.getId(), user2.getId());
-         if (conv2Opt.isEmpty()) {
-             conv2Opt = conversationRepository.findByItemIdAndUserIds(item2.getId(), user2.getId(), user3.getId());
+        Optional<Conversation> conv2Opt = conversationRepository.findByItemIdAndUserIds(item2.getId(), user3.getId(),
+                user2.getId());
+        if (conv2Opt.isEmpty()) {
+            conv2Opt = conversationRepository.findByItemIdAndUserIds(item2.getId(), user2.getId(), user3.getId());
         }
         if (conv2Opt.isEmpty()) {
             Conversation conv2ToSave = Conversation.builder()
@@ -260,7 +274,9 @@ public class DataInitializer implements CommandLineRunner {
                     .build();
             Conversation conv2 = conversationRepository.save(conv2ToSave);
 
-            Message msg2_1 = Message.builder().conversation(conv2).sender(user3).content("Salut, le livre m'intéresse. Quel est l'état exact des pages ?").timestamp(LocalDateTime.now().minusDays(1).plusMinutes(30)).build();
+            Message msg2_1 = Message.builder().conversation(conv2).sender(user3)
+                    .content("Salut, le livre m'intéresse. Quel est l'état exact des pages ?")
+                    .timestamp(LocalDateTime.now().minusDays(1).plusMinutes(30)).build();
             messageRepository.save(msg2_1);
 
             conv2.setLastMessageContent(msg2_1.getContent());
@@ -271,7 +287,6 @@ public class DataInitializer implements CommandLineRunner {
             System.out.println("Conversation 2 and Messages created.");
         }
 
-
         // 5. Reviews
         // Vérifier si une review existe déjà entre ces utilisateurs
         // Pour user2 review user1:
@@ -280,7 +295,9 @@ public class DataInitializer implements CommandLineRunner {
                 .anyMatch(review -> review.getReviewee().getId().equals(user1.getId()));
 
         if (!reviewExistsUser2ToUser1) {
-            Review review1 = Review.builder().reviewer(user2).reviewee(user1).rating(5).comment("Vendeuse très sympa, vélo en parfait état !").createdAt(LocalDateTime.now().minusDays(1)).build();
+            Review review1 = Review.builder().reviewer(user2).reviewee(user1).rating(5)
+                    .comment("Vendeuse très sympa, vélo en parfait état !").createdAt(LocalDateTime.now().minusDays(1))
+                    .build();
             reviewRepository.save(review1);
             System.out.println("Review 1 created.");
         }
@@ -291,26 +308,35 @@ public class DataInitializer implements CommandLineRunner {
                 .anyMatch(review -> review.getReviewee().getId().equals(user3.getId()));
 
         if (!reviewExistsUser1ToUser3) {
-            Review review2 = Review.builder().reviewer(user1).reviewee(user3).rating(4).comment("Acheteur sérieux, transaction rapide.").createdAt(LocalDateTime.now()).build();
+            Review review2 = Review.builder().reviewer(user1).reviewee(user3).rating(4)
+                    .comment("Acheteur sérieux, transaction rapide.").createdAt(LocalDateTime.now()).build();
             reviewRepository.save(review2);
             System.out.println("Review 2 created.");
         }
 
-        /* // 6. SavedItems
-        // Vérifier si l'item est déjà sauvegardé par l'utilisateur
-        Optional<SavedItem> saved1Opt = savedItemRepository.findByUserIdAndItemId(user1.getId(), item4.getId());
-        if (saved1Opt.isEmpty()) {
-            SavedItem saved1 = SavedItem.builder().user(user1).item(item4).savedAt(LocalDateTime.now().minusHours(5)).build();
-            savedItemRepository.save(saved1);
-            System.out.println("SavedItem 1 created.");
+        // 6. SavedItems
+        if (user1 != null && item4 != null) {
+            savedItemRepository.findByUserIdAndItemId(user1.getId(), item4.getId()).orElseGet(() -> {
+                SavedItem saved1 = SavedItem.builder().user(user1).item(item4)
+                        .savedAt(LocalDateTime.now().minusHours(5)).build();
+                System.out.println("Creating SavedItem 1 for user " + user1.getId() + " and item " + item4.getId());
+                return savedItemRepository.save(saved1);
+            });
+        } else {
+            System.out.println("Skipping SavedItem 1 creation due to null user1 or item4.");
         }
 
-        Optional<SavedItem> saved2Opt = savedItemRepository.findByUserIdAndItemId(user3.getId(), item2.getId());
-        if (saved2Opt.isEmpty()) {
-            SavedItem saved2 = SavedItem.builder().user(user3).item(item2).savedAt(LocalDateTime.now().minusHours(2)).build();
-            savedItemRepository.save(saved2);
-            System.out.println("SavedItem 2 created.");
-        } */
+        if (user3 != null && item2 != null) {
+            savedItemRepository.findByUserIdAndItemId(user3.getId(), item2.getId()).orElseGet(() -> {
+                SavedItem saved2 = SavedItem.builder().user(user3).item(item2)
+                        .savedAt(LocalDateTime.now().minusHours(2)).build();
+                System.out.println("Creating SavedItem 2 for user " + user3.getId() + " and item " + item2.getId());
+                return savedItemRepository.save(saved2);
+            });
+        } else {
+            System.out.println("Skipping SavedItem 2 creation due to null user3 or item2.");
+        }
+        System.out.println("SavedItems created or loaded if they did not exist.");
 
         System.out.println("Data Initialization finished.");
     }
