@@ -7,7 +7,9 @@ import org.springframework.stereotype.Component; // Ou @Repository si vous préf
 import com.peersmarket.marketplace.user.application.port.out.AppUserRepository;
 import com.peersmarket.marketplace.user.domain.model.AppUser;
 import com.peersmarket.marketplace.user.infrastructure.persistence.jpa.mapper.AppUserMapper;
+import com.peersmarket.marketplace.user.infrastructure.persistence.jpa.model.AddressEntity;
 import com.peersmarket.marketplace.user.infrastructure.persistence.jpa.model.AppUserEntity;
+import com.peersmarket.marketplace.user.infrastructure.persistence.jpa.repository.AddressJpaRepository;
 import com.peersmarket.marketplace.user.infrastructure.persistence.jpa.repository.AppUserJpaRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -18,15 +20,19 @@ public class AppUserPersistenceImpl implements AppUserRepository {
 
     private final AppUserJpaRepository appUserJpaRepository;
     private final AppUserMapper appUserMapper;
+    private final AddressJpaRepository addressJpaRepository;
 
     @Override
     public AppUser save(AppUser appUser) {
         AppUserEntity appUserEntity = appUserMapper.toEntity(appUser);
-        // Gérer la cascade pour l'adresse si l'entité utilisateur est propriétaire de la relation
-        // et que l'adresse est nouvelle ou modifiée.
-        // Si l'adresse peut exister indépendamment ou être partagée, la logique de sauvegarde de l'adresse
-        // devrait être gérée séparément ou via son propre service/port.
-        // Pour l'instant, on suppose que AppUserMapper et CascadeType.ALL sur AppUserEntity.address gèrent cela.
+
+        if (appUser.getAddress() != null && appUser.getAddress().getId() != null) {
+            final AddressEntity AddressEntity = addressJpaRepository.findById(appUser.getAddress().getId())
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Impossible de trouver l'adresse persistée avec l'ID : " + appUser.getAddress().getId()));
+            appUserEntity.setAddress(AddressEntity);
+        }
+        
         AppUserEntity savedEntity = appUserJpaRepository.save(appUserEntity);
         return appUserMapper.toDomain(savedEntity);
     }

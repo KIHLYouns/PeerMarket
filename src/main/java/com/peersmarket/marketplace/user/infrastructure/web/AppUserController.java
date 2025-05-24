@@ -14,9 +14,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.peersmarket.marketplace.user.application.dto.AppUserDto;
+import com.peersmarket.marketplace.user.application.dto.CreateUserDto;
 import com.peersmarket.marketplace.user.application.port.in.AppUserService;
 
-import jakarta.validation.Valid; // Pour la validation si vous ajoutez des annotations de validation au DTO
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -27,48 +28,41 @@ public class AppUserController {
     private final AppUserService appUserService;
 
     @PostMapping
-    public ResponseEntity<AppUserDto> createUser(@Valid @RequestBody AppUserDto userDto) {
-        // Le mot de passe ne devrait pas être dans le AppUserDto pour la création,
-        // ou alors il faut un DTO spécifique pour la création (CreateUserRequestDto)
-        // qui contiendrait le mot de passe en clair.
-        // Pour l'instant, on suppose que AppUserDto est utilisé et que le service gère le mot de passe.
-        AppUserDto createdUser = appUserService.createUser(userDto);
+    public ResponseEntity<AppUserDto> createUser(@Valid @RequestBody final CreateUserDto createUserDto) {
+        final AppUserDto createdUser = appUserService.createUser(createUserDto);
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AppUserDto> getUserById(@PathVariable Long id) {
-        Optional<AppUserDto> userDto = appUserService.getUserById(id);
+    public ResponseEntity<AppUserDto> getUserById(@PathVariable final Long id) {
+        final Optional<AppUserDto> userDto = appUserService.getUserById(id);
         return userDto.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                      .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/username/{username}")
-    public ResponseEntity<AppUserDto> getUserByUsername(@PathVariable String username) {
-        Optional<AppUserDto> userDto = appUserService.getUserByUsername(username);
+    public ResponseEntity<AppUserDto> getUserByUsername(@PathVariable final String username) {
+        final Optional<AppUserDto> userDto = appUserService.getUserByUsername(username);
         return userDto.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                      .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AppUserDto> updateUser(@PathVariable Long id, @Valid @RequestBody AppUserDto userDto) {
-        // Assurez-vous que l'ID dans le DTO correspond à l'ID dans le chemin, ou ignorez l'ID du DTO.
-        // La logique de mise à jour dans le service doit gérer quels champs peuvent être modifiés.
+    public ResponseEntity<AppUserDto> updateUser(@PathVariable final Long id, @Valid @RequestBody final AppUserDto userDto) {
         try {
-            AppUserDto updatedUser = appUserService.updateUser(id, userDto);
+            final AppUserDto updatedUser = appUserService.updateUser(id, userDto);
             return ResponseEntity.ok(updatedUser);
-        } catch (RuntimeException e) { // Remplacez par une exception plus spécifique si le service la lance
-            // Par exemple, UserNotFoundException
+        } catch (final RuntimeException e) { // Idéalement, une exception plus spécifique
             return ResponseEntity.notFound().build();
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable final Long id) {
         try {
             appUserService.deleteUser(id);
             return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) { // Remplacez par une exception plus spécifique
+        } catch (final RuntimeException e) { // Idéalement, une exception plus spécifique
             return ResponseEntity.notFound().build();
         }
     }

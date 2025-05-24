@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.peersmarket.marketplace.item.application.dto.CreateItemDto;
 import com.peersmarket.marketplace.item.application.dto.ImageDto;
 import com.peersmarket.marketplace.item.application.dto.ItemDto;
 import com.peersmarket.marketplace.item.application.port.in.ItemService;
@@ -39,13 +40,29 @@ public class ItemServiceImpl implements ItemService {
     private final ImageMapper imageMapper;
 
     @Override
-    public ItemDto createItem(final ItemDto itemDto) {
+    public ItemDto createItem(final CreateItemDto itemDto) {
         final AppUser seller = appUserRepository.findById(itemDto.getSellerId())
                 .orElseThrow(() -> new NotFoundException("Vendeur non trouvé avec l'ID : " + itemDto.getSellerId()));
         final Category category = categoryRepository.findById(itemDto.getCategoryId())
                 .orElseThrow(() -> new NotFoundException("Catégorie non trouvée avec l'ID : " + itemDto.getCategoryId()));
 
-        final Item item = itemMapper.toDomain(itemDto);
+        Item newItem = Item.builder()
+                .title(itemDto.getTitle())
+                .description(itemDto.getDescription())
+                .price(itemDto.getPrice())
+                .condition(itemDto.getCondition())
+                .seller(seller)
+                .category(category)
+                .images(itemDto.getImages().stream()
+                        .map(imageMapper::toDomain)
+                        .collect(Collectors.toList()))
+                .build();
+                
+        Item savedItem = itemRepository.save(newItem);
+        
+        return itemMapper.toDto(savedItem);
+        
+        /* final Item item = itemMapper.toDomain(itemDto);
         item.setSeller(seller);
         item.setCategory(category);
         if (item.getStatus() == null) {
@@ -57,7 +74,7 @@ public class ItemServiceImpl implements ItemService {
         final Item finalItemState = itemRepository.findById(savedDomainItem.getId())
             .orElseThrow(() -> new NotFoundException("Erreur lors de la récupération de l'item créé : " + savedDomainItem.getId()));
         
-        return itemMapper.toDto(finalItemState);
+        return itemMapper.toDto(finalItemState); */
     }
 
     @Override

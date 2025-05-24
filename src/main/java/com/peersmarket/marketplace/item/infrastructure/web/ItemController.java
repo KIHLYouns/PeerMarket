@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.peersmarket.marketplace.item.application.dto.CreateItemDto;
 import com.peersmarket.marketplace.item.application.dto.ImageDto;
 import com.peersmarket.marketplace.item.application.dto.ItemDto;
 import com.peersmarket.marketplace.item.application.port.in.ItemService;
@@ -30,7 +31,7 @@ public class ItemController {
     private final ItemService itemService;
 
     @PostMapping
-    public ResponseEntity<ItemDto> createItem(@Valid @RequestBody final ItemDto itemDto) {
+    public ResponseEntity<ItemDto> createItem(@Valid @RequestBody final CreateItemDto itemDto) {
         // L'authentification/autorisation (ex: sellerId correspond à l'utilisateur connecté)
         // serait gérée ici ou dans le service avec Spring Security.
         final ItemDto createdItem = itemService.createItem(itemDto);

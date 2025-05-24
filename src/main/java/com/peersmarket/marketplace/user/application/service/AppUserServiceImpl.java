@@ -1,5 +1,6 @@
 package com.peersmarket.marketplace.user.application.service;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -8,10 +9,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.peersmarket.marketplace.shared.model.Password;
 import com.peersmarket.marketplace.user.application.dto.AppUserDto;
+import com.peersmarket.marketplace.user.application.dto.CreateAddressDto;
+import com.peersmarket.marketplace.user.application.dto.CreateUserDto;
+import com.peersmarket.marketplace.user.application.port.in.AddressService;
 import com.peersmarket.marketplace.user.application.port.in.AppUserService;
 import com.peersmarket.marketplace.user.application.port.out.AppUserRepository;
+import com.peersmarket.marketplace.user.domain.model.Address;
 import com.peersmarket.marketplace.user.domain.model.AppUser;
-import com.peersmarket.marketplace.user.infrastructure.persistence.jpa.mapper.AppUserMapper; // Ou un mapper d'application si vous en avez un séparé
+import com.peersmarket.marketplace.user.domain.model.AppUserRole;
+import com.peersmarket.marketplace.user.domain.model.UserStatus;
+import com.peersmarket.marketplace.user.infrastructure.persistence.jpa.mapper.AppUserMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,19 +27,31 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class AppUserServiceImpl implements AppUserService {
 
-    private final AppUserRepository appUserRepository; // À créer ou à remplacer par votre JpaRepository si vous l'utilisez directement ici
-    private final AppUserMapper appUserMapper; // Assurez-vous que ce mapper est approprié pour cette couche
-    private final PasswordEncoder passwordEncoder; // Injection du PasswordEncoder
+    private final AppUserRepository appUserRepository;
+    private final AppUserMapper appUserMapper;
+    private final PasswordEncoder passwordEncoder;
+    private final AddressService addressService;
 
     @Override
-    public AppUserDto createUser(final AppUserDto userDto) {
-        final AppUser appUser = appUserMapper.toDomain(userDto);
+    public AppUserDto createUser(final CreateUserDto createUserDto) {
+        final AppUser appUser = appUserMapper.toDomain(createUserDto);
 
-        if (userDto.getPassword() != null && !userDto.getPassword().isBlank()) {
-            final String encodedPassword = passwordEncoder.encode(userDto.getPassword());
-            appUser.setPassword(new Password(encodedPassword)); // Hachage du mot de passe
+        if (createUserDto.getPassword() != null && !createUserDto.getPassword().isBlank()) {
+            final String encodedPassword = passwordEncoder.encode(createUserDto.getPassword());
+            appUser.setPassword(new Password(encodedPassword));
         } else {
-            throw new IllegalArgumentException("Password cannot be null or empty for a new user.");
+            throw new IllegalArgumentException("Le mot de passe ne peut pas être nul ou vide pour un nouvel utilisateur.");
+        }
+
+        appUser.setJoinDate(LocalDate.now());
+        appUser.setStatus(UserStatus.ACTIVE);
+        appUser.setRole(AppUserRole.USER);
+        appUser.setVerified(false);
+
+        if (createUserDto.getAddress() != null) {
+            final CreateAddressDto createAddressDto = createUserDto.getAddress();
+            final Address address = addressService.createAddressFromCoordinates(createAddressDto.getLongitude(), createAddressDto.getLatitude());
+            appUser.setAddress(address);
         }
 
         final AppUser savedUser = appUserRepository.save(appUser);
@@ -49,26 +68,34 @@ public class AppUserServiceImpl implements AppUserService {
     @Override
     @Transactional(readOnly = true)
     public Optional<AppUserDto> getUserByUsername(final String username) {
-        return appUserRepository.findByUsername(username) // Assurez-vous que cette méthode existe dans votre port/repository
+        return appUserRepository.findByUsername(username)
                 .map(appUserMapper::toDto);
     }
 
     @Override
     public AppUserDto updateUser(final Long id, final AppUserDto userDto) {
         final AppUser existingUser = appUserRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id)); // Remplacez par une exception personnalisée
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec id: " + id));
 
-        // Mettez à jour les champs de existingUser avec les valeurs de userDto
-        // Ceci est une mise à jour partielle, ajustez selon vos besoins
-        final AppUser userToUpdate = appUserMapper.toDomain(userDto);
-        
-        // Il est important de ne pas écraser des champs non modifiables ou de gérer la logique de mise à jour avec soin
-        existingUser.setUsername(userToUpdate.getUsername()); // Exemple
-        existingUser.setBio(userToUpdate.getBio());
-        existingUser.setAvatarUrl(userToUpdate.getAvatarUrl());
-        existingUser.setAddress(userToUpdate.getAddress()); // Assurez-vous que le mapping d'adresse est correct
-        // Ne mettez pas à jour le mot de passe ici, sauf si c'est une fonctionnalité spécifique
-        // existingUser.setEmail(userToUpdate.getEmail()); // Soyez prudent avec la mise à jour de l'email
+        if (userDto.getUsername() != null) {
+            existingUser.setUsername(userDto.getUsername());
+        }
+        if (userDto.getBio() != null) {
+            existingUser.setBio(userDto.getBio());
+        }
+        if (userDto.getAvatarUrl() != null) {
+            existingUser.setAvatarUrl(userDto.getAvatarUrl());
+        }
+        // La mise à jour de l'adresse peut nécessiter une logique plus complexe.
+        // Si userDto.getAddress() n'est pas null, vous pourriez vouloir mettre à jour l'adresse.
+        // Cela pourrait impliquer de récupérer l'adresse existante, de la mettre à jour ou d'en créer une nouvelle.
+        if (userDto.getAddress() != null && userDto.getAddress().getLongitude() != null && userDto.getAddress().getLatitude() != null) {
+            final Address updatedAddress = addressService.createAddressFromCoordinates(
+                userDto.getAddress().getLongitude(),
+                userDto.getAddress().getLatitude()
+            );
+            existingUser.setAddress(updatedAddress);
+        }
 
         final AppUser updatedUser = appUserRepository.save(existingUser);
         return appUserMapper.toDto(updatedUser);
@@ -76,8 +103,8 @@ public class AppUserServiceImpl implements AppUserService {
 
     @Override
     public void deleteUser(final Long id) {
-        if (!appUserRepository.existsById(id)) { // Assurez-vous que cette méthode existe
-            throw new RuntimeException("User not found with id: " + id); // Remplacez par une exception personnalisée
+        if (!appUserRepository.existsById(id)) {
+            throw new RuntimeException("Utilisateur non trouvé avec id: " + id);
         }
         appUserRepository.deleteById(id);
     }

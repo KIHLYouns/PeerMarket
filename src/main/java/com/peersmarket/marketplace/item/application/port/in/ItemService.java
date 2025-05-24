@@ -3,11 +3,12 @@ package com.peersmarket.marketplace.item.application.port.in;
 import java.util.List;
 import java.util.Optional;
 
+import com.peersmarket.marketplace.item.application.dto.CreateItemDto;
 import com.peersmarket.marketplace.item.application.dto.ImageDto;
 import com.peersmarket.marketplace.item.application.dto.ItemDto;
 
 public interface ItemService {
-    ItemDto createItem(ItemDto itemDto);
+    ItemDto createItem(CreateItemDto itemDto);
     Optional<ItemDto> getItemById(Long id);
     List<ItemDto> getAllItems();
     List<ItemDto> getItemsBySellerId(Long sellerId);
