@@ -1,6 +1,7 @@
 package com.peersmarket.marketplace.user.domain.model;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import com.peersmarket.marketplace.shared.model.Email;
 import com.peersmarket.marketplace.shared.model.Password;
@@ -18,8 +19,10 @@ public class AppUser {
     private Address address;
     private AppUserRole role;
     private Boolean verified;
+    private Double averageRating;
+    private Integer ratingCount;
 
-    public AppUser(String username, Email email, Password password, AppUserRole role) {
+    public AppUser(final String username, final Email email, final Password password, final AppUserRole role) {
         this.username = username;
         this.email = email;
         this.password = password;
@@ -35,11 +38,11 @@ public class AppUser {
         }
     }
 
-    public void changePassword(Password newPassword) {
+    public void changePassword(final Password newPassword) {
         this.password = newPassword;
     }
 
-    public void updateProfile(String username, String bio, String avatarUrl, Address address) {
+    public void updateProfile(final String username, final String bio, final String avatarUrl, final Address address) {
         if (username != null && !username.trim().isEmpty()) {
             this.username = username;
         }
@@ -54,11 +57,38 @@ public class AppUser {
         }
     }
 
+    /**
+     * Recalcule la note moyenne basée sur tous les avis.
+     */
+    public void recalculateRating(final List<Integer> allRatings) {
+        if (allRatings == null || allRatings.isEmpty()) {
+            this.ratingCount = 0;
+            this.averageRating = 0.0;
+            return;
+        }
+
+        this.ratingCount = allRatings.size();
+        final double sum = allRatings.stream().mapToInt(Integer::intValue).sum();
+        this.averageRating = Math.round((sum / this.ratingCount) * 100.0) / 100.0;
+    }
+
+    /**
+     * Mise à jour incrémentale de la note.
+     */
+    public void addRatingIncremental(final int newRating) {
+        if (this.ratingCount == null) this.ratingCount = 0;
+        if (this.averageRating == null) this.averageRating = 0.0;
+
+        final double currentTotalRating = this.averageRating * this.ratingCount;
+        this.ratingCount++;
+        this.averageRating = Math.round(((currentTotalRating + newRating) / this.ratingCount) * 100.0) / 100.0;
+    }
+
     public Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
@@ -66,7 +96,7 @@ public class AppUser {
         return username;
     }
 
-    public void setUsername(String username) {
+    public void setUsername(final String username) {
         this.username = username;
     }
 
@@ -74,7 +104,7 @@ public class AppUser {
         return email;
     }
 
-    public void setEmail(Email email) {
+    public void setEmail(final Email email) {
         this.email = email;
     }
 
@@ -82,7 +112,7 @@ public class AppUser {
         return password;
     }
 
-    public void setPassword(Password password) {
+    public void setPassword(final Password password) {
         this.password = password;
     }
 
@@ -90,7 +120,7 @@ public class AppUser {
         return avatarUrl;
     }
 
-    public void setAvatarUrl(String avatarUrl) {
+    public void setAvatarUrl(final String avatarUrl) {
         this.avatarUrl = avatarUrl;
     }
 
@@ -98,7 +128,7 @@ public class AppUser {
         return bio;
     }
 
-    public void setBio(String bio) {
+    public void setBio(final String bio) {
         this.bio = bio;
     }
 
@@ -106,7 +136,7 @@ public class AppUser {
         return joinDate;
     }
 
-    public void setJoinDate(LocalDate joinDate) {
+    public void setJoinDate(final LocalDate joinDate) {
         this.joinDate = joinDate;
     }
 
@@ -114,7 +144,7 @@ public class AppUser {
         return status;
     }
 
-    public void setStatus(UserStatus status) {
+    public void setStatus(final UserStatus status) {
         this.status = status;
     }
 
@@ -122,7 +152,7 @@ public class AppUser {
         return address;
     }
 
-    public void setAddress(Address address) {
+    public void setAddress(final Address address) {
         this.address = address;
     }
 
@@ -130,7 +160,7 @@ public class AppUser {
         return role;
     }
 
-    public void setRole(AppUserRole role) {
+    public void setRole(final AppUserRole role) {
         this.role = role;
     }
 
@@ -138,8 +168,24 @@ public class AppUser {
         return verified;
     }
 
-    public void setVerified(boolean verified) {
+    public void setVerified(final boolean verified) {
         this.verified = verified;
+    }
+
+    public Double getAverageRating() {
+        return averageRating;
+    }
+
+    public void setAverageRating(final Double averageRating) {
+        this.averageRating = averageRating;
+    }
+
+    public Integer getRatingCount() {
+        return ratingCount;
+    }
+
+    public void setRatingCount(final Integer ratingCount) {
+        this.ratingCount = ratingCount;
     }
 
 }

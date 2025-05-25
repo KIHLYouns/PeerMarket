@@ -21,4 +21,6 @@ public class AppUserDto {
     private AppUserRole role;
     private Boolean verified;
     private AddressDto address;
+    private Double averageRating;
+    private Integer ratingCount;
 }

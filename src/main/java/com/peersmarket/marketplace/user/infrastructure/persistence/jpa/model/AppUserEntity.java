@@ -2,6 +2,8 @@ package com.peersmarket.marketplace.user.infrastructure.persistence.jpa.model;
 
 import java.time.LocalDate;
 
+import org.hibernate.annotations.ColumnDefault;
+
 import com.peersmarket.marketplace.user.domain.model.AppUserRole;
 import com.peersmarket.marketplace.user.domain.model.UserStatus;
 
@@ -55,5 +57,13 @@ public class AppUserEntity {
     private AppUserRole role;
 
     private Boolean verified;
+
+    @Column(name = "average_rating")
+    @ColumnDefault("0.0")
+    private Double averageRating = 0.0;
+
+    @Column(name = "rating_count")
+    @ColumnDefault("0")
+    private Integer ratingCount = 0;
 }
 

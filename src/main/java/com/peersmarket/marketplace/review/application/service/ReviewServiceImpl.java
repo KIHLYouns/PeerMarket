@@ -1,32 +1,38 @@
 package com.peersmarket.marketplace.review.application.service;
 
-import com.peersmarket.marketplace.review.application.dto.CreateReviewRequestDto;
-import com.peersmarket.marketplace.review.application.dto.ReviewDto;
-import com.peersmarket.marketplace.review.application.port.in.ReviewService;
-import com.peersmarket.marketplace.review.application.port.out.ReviewRepository;
-import com.peersmarket.marketplace.review.domain.model.Review;
-import com.peersmarket.marketplace.review.infrastructure.persistence.jpa.mapper.ReviewMapper;
-import com.peersmarket.marketplace.user.application.port.out.AppUserRepository; // Assurez-vous que le chemin est correct
-import com.peersmarket.marketplace.user.domain.model.AppUser; // Assurez-vous que le chemin est correct
-import com.peersmarket.marketplace.shared.exception.NotFoundException;
-
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.peersmarket.marketplace.review.application.dto.CreateReviewRequestDto;
+import com.peersmarket.marketplace.review.application.dto.ReviewDto;
+import com.peersmarket.marketplace.review.application.event.ReviewCreatedEvent;
+import com.peersmarket.marketplace.review.application.port.in.ReviewService;
+import com.peersmarket.marketplace.review.application.port.out.ReviewRepository;
+import com.peersmarket.marketplace.review.domain.model.Review;
+import com.peersmarket.marketplace.review.infrastructure.persistence.jpa.mapper.ReviewMapper;
+import com.peersmarket.marketplace.shared.exception.NotFoundException;
+import com.peersmarket.marketplace.user.application.port.out.AppUserRepository; // Assurez-vous que le chemin est correct
+import com.peersmarket.marketplace.user.domain.model.AppUser; // Assurez-vous que le chemin est correct
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class ReviewServiceImpl implements ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final AppUserRepository appUserRepository; // Pour récupérer les objets AppUser
     private final ReviewMapper reviewMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public ReviewDto createReview(final CreateReviewRequestDto createReviewDto) {
@@ -56,6 +62,17 @@ public class ReviewServiceImpl implements ReviewService {
                 .build();
 
         final Review savedReview = reviewRepository.save(review);
+
+        // Publier l'événement APRÈS la sauvegarde réussie
+        eventPublisher.publishEvent(new ReviewCreatedEvent(
+                this,
+                savedReview.getId(),
+                savedReview.getReviewee().getId(),
+                savedReview.getRating(),
+                savedReview.getCreatedAt()
+        ));
+        log.info("Published ReviewCreatedEvent for reviewId: {}", savedReview.getId());
+
         return reviewMapper.toDto(savedReview);
     }
 
