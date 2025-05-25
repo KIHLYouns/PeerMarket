@@ -28,14 +28,17 @@ public class ImageRepositoryImpl implements ImageRepository {
     @Override
     @Transactional
     public Image save(final Image image) {
-        final ImageEntity imageEntity = imageMapper.toEntity(image);
+        final ImageEntity imageEntity = imageMapper.toEntity(image); // image.getUrl() contient l'URL S3
+
+        // L'association à ItemEntity est cruciale pour que JPA sache à quel item cette image appartient.
         if (image.getItemId() != null) {
             final ItemEntity itemEntity = itemJpaRepository.findById(image.getItemId())
-                .orElseThrow(() -> new NotFoundException("Item non trouvé pour l'image : " + image.getItemId()));
-            imageEntity.setItem(itemEntity);
-        } else if (imageEntity.getItem() == null || imageEntity.getItem().getId() == null) {
-            // This case should ideally be prevented by service layer logic ensuring item is set
-            throw new IllegalStateException("L'image doit être associée à un article existant pour être sauvegardée.");
+                .orElseThrow(() -> new NotFoundException("Item non trouvé pour l'image avec itemId : " + image.getItemId()));
+            imageEntity.setItem(itemEntity); // Assigner l'entité Item gérée
+        } else {
+            // Ce cas ne devrait pas arriver si la logique du service est correcte.
+            // L'URL est externe, mais l'association à un item dans notre DB est toujours nécessaire.
+            throw new IllegalStateException("L'image doit être associée à un article (itemId doit être défini) pour être sauvegardée en base de données.");
         }
         final ImageEntity savedEntity = imageJpaRepository.save(imageEntity);
         return imageMapper.toDomain(savedEntity);
