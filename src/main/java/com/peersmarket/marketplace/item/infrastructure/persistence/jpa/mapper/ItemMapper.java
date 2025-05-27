@@ -14,7 +14,14 @@ public interface ItemMapper {
 
     @Mapping(source = "seller.id", target = "sellerId")
     @Mapping(source = "category.id", target = "categoryId")
+    @Mapping(source = "category.name", target = "categoryName")
     @Mapping(source = "images", target = "images")
+    @Mapping(source = "seller.username", target = "sellerUsername")
+    @Mapping(source = "seller.avatarUrl", target = "sellerAvatarUrl")
+    @Mapping(source = "seller.averageRating", target = "sellerAverageRating")
+    @Mapping(source = "seller.ratingCount", target = "sellerRatingCount")
+    @Mapping(source = "seller.address.city.id", target = "sellerCityId")
+    @Mapping(source = "seller.address.city.name", target = "sellerCityName")
     ItemDto toDto(Item item);
 
     @Mapping(source = "sellerId", target = "seller.id")

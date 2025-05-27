@@ -22,7 +22,14 @@ public class ItemDto {
     private ItemCondition condition;
     private ItemStatus status;
     private Long sellerId;
+    private String sellerUsername;
+    private String sellerAvatarUrl;
+    private Double sellerAverageRating;
+    private Integer sellerRatingCount;
+    private Long sellerCityId;
+    private String sellerCityName;
     private Long categoryId;
+    private String categoryName;
     private LocalDateTime createdAt;
     private Integer viewCount;
     private List<ImageDto> images;
