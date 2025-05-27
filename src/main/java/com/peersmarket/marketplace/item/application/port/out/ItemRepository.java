@@ -17,5 +17,6 @@ public interface ItemRepository {
     List<Item> findByCategoryId(Long categoryId);
     List<Item> findByTitleContaining(String title);
     List<Item> findByStatusOrderByCreatedAtDesc(ItemStatus status);
-
+    List<Item> findByStatusOrderBySellerAverageRatingDesc(ItemStatus status);
+    List<Item> findByStatusOrderByViewCountDescCreatedAtDesc(ItemStatus status);
 }

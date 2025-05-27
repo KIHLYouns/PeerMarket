@@ -18,10 +18,16 @@ public class Item {
     private Category category;
     private LocalDateTime createdAt;
     private List<Image> images;
+    private Integer viewCount;
 
-    public Item() {}
+    public Item() {
+        this.images = new ArrayList<>();
+        this.viewCount = 0;
+        this.status = ItemStatus.AVAILABLE;
+        this.createdAt = LocalDateTime.now();
+    }
 
-    private Item( ItemBuilder builder ) {
+    private Item(final ItemBuilder builder) {
         this.id = builder.id;
         this.title = builder.title;
         this.description = builder.description;
@@ -32,6 +38,7 @@ public class Item {
         this.category = builder.category;
         this.createdAt = builder.createdAt;
         this.images = builder.images;
+        this.viewCount = builder.viewCount;
     }
 
     public static ItemBuilder builder() {
@@ -44,52 +51,62 @@ public class Item {
         private String description;
         private BigDecimal price;
         private ItemCondition condition;
-        private ItemStatus status = ItemStatus.AVAILABLE;
+        private ItemStatus status;
         private AppUser seller;
         private Category category;
-        private LocalDateTime createdAt = LocalDateTime.now();
-        private List<Image> images = new ArrayList<>();
+        private LocalDateTime createdAt;
+        private List<Image> images;
+        private Integer viewCount;
 
-        public ItemBuilder() {}
+        public ItemBuilder() {
+        }
 
-        public ItemBuilder id(Long id) {
+        public ItemBuilder id(final Long id) {
             this.id = id;
             return this;
         }
 
-        public ItemBuilder title(String title) {
+        public ItemBuilder title(final String title) {
             this.title = title;
             return this;
         }
-        public ItemBuilder description(String description) {
+
+        public ItemBuilder description(final String description) {
             this.description = description;
             return this;
         }
-        public ItemBuilder price(BigDecimal price) {
+
+        public ItemBuilder price(final BigDecimal price) {
             this.price = price;
             return this;
         }
-        public ItemBuilder condition(ItemCondition condition) {
+
+        public ItemBuilder condition(final ItemCondition condition) {
             this.condition = condition;
             return this;
         }
-        public ItemBuilder status(ItemStatus status) {
+
+        public ItemBuilder status(final ItemStatus status) {
             this.status = status;
             return this;
         }
-        public ItemBuilder seller(AppUser seller) {
+
+        public ItemBuilder seller(final AppUser seller) {
             this.seller = seller;
             return this;
         }
-        public ItemBuilder category(Category category) {
+
+        public ItemBuilder category(final Category category) {
             this.category = category;
             return this;
         }
-        public ItemBuilder createdAt(LocalDateTime createdAt) {
+
+        public ItemBuilder createdAt(final LocalDateTime createdAt) {
             this.createdAt = createdAt;
             return this;
         }
-        public ItemBuilder images(List<Image> images) {
+
+        public ItemBuilder images(final List<Image> images) {
             if (images != null) {
                 this.images = new ArrayList<>(images);
             } else {
@@ -97,8 +114,14 @@ public class Item {
             }
             return this;
         }
+
+        public ItemBuilder viewCount(final Integer viewCount) {
+            this.viewCount = viewCount;
+            return this;
+        }
+
         public Item build() {
-            Item item = new Item(this);
+            final Item item = new Item(this);
             return item;
         }
     }
@@ -181,6 +204,14 @@ public class Item {
 
     public void setImages(final List<Image> images) {
         this.images = images;
+    }
+
+    public Integer getViewCount() {
+        return viewCount;
+    }
+
+    public void setViewCount(final Integer viewCount) {
+        this.viewCount = viewCount;
     }
 
     public void addImage(final Image image) {

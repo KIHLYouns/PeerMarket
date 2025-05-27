@@ -66,11 +66,17 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public Optional<ItemDto> getItemById(final Long id) {
-        return itemRepository.findById(id).map(item -> {
-            return itemMapper.toDto(item);
-        });
+        final Optional<Item> itemOpt = itemRepository.findById(id);
+        if (itemOpt.isPresent()) {
+            final Item item = itemOpt.get();
+            // Incrémenter le compteur de vues
+            item.setViewCount((item.getViewCount() == null ? 0 : item.getViewCount()) + 1);
+            itemRepository.save(item);
+            return Optional.of(itemMapper.toDto(item));
+        }
+        return Optional.empty();
     }
 
     @Override

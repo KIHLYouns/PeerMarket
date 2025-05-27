@@ -115,5 +115,21 @@ public class ItemRepositoryImpl implements ItemRepository {
         return itemJpaRepository.findByStatusOrderByCreatedAtDesc(status).stream()
                     .map(itemMapper::toDomain)
                     .collect(Collectors.toList());
-    }                
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Item> findByStatusOrderBySellerAverageRatingDesc(final ItemStatus status) {
+        return itemJpaRepository.findByStatusOrderBySellerAverageRatingDesc(status).stream()
+                .map(itemMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Item> findByStatusOrderByViewCountDescCreatedAtDesc(final ItemStatus status) {
+        return itemJpaRepository.findByStatusOrderByViewCountDescCreatedAtDesc(status).stream()
+                .map(itemMapper::toDomain)
+                .collect(Collectors.toList());
+    }
 }

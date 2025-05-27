@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.ColumnDefault;
+
 import com.peersmarket.marketplace.item.domain.model.ItemCondition;
 import com.peersmarket.marketplace.item.domain.model.ItemStatus;
 import com.peersmarket.marketplace.user.infrastructure.persistence.jpa.model.AppUserEntity;
@@ -64,6 +66,10 @@ public class ItemEntity {
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "view_count", nullable = false)
+    @ColumnDefault("0")
+    private Integer viewCount = 0;
 
     @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ImageEntity> images = new ArrayList<>();
