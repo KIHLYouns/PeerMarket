@@ -12,7 +12,6 @@ public interface MessageRepository {
     Message save(Message message);
     Optional<Message> findById(Long id);
     Page<Message> findByConversationIdOrderByTimestampDesc(Long conversationId, Pageable pageable);
-    List<Message> findAllByConversationId(Long conversationId); // Ajouter cette méthode
-    // Optionnel mais mieux pour la performance lors de la sauvegarde de plusieurs entités
+    List<Message> findAllByConversationId(Long conversationId);
     List<Message> saveAll(List<Message> messages); 
 }

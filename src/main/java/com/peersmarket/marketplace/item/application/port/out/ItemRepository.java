@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.peersmarket.marketplace.item.domain.model.Item;
+import com.peersmarket.marketplace.item.domain.model.ItemStatus;
 
 public interface ItemRepository {
     Item save(Item item);
@@ -15,4 +16,6 @@ public interface ItemRepository {
     List<Item> findBySellerId(Long sellerId);
     List<Item> findByCategoryId(Long categoryId);
     List<Item> findByTitleContaining(String title);
+    List<Item> findByStatusOrderByCreatedAtDesc(ItemStatus status);
+
 }

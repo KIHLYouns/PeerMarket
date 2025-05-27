@@ -3,6 +3,7 @@ package com.peersmarket.marketplace.item.infrastructure.web;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,12 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.MediaType;
 
 import com.peersmarket.marketplace.item.application.dto.CreateItemDto;
 import com.peersmarket.marketplace.item.application.dto.ImageDto;
 import com.peersmarket.marketplace.item.application.dto.ItemDto;
 import com.peersmarket.marketplace.item.application.port.in.ItemService;
+import com.peersmarket.marketplace.item.application.port.in.ItemSuggestionService;
 import com.peersmarket.marketplace.shared.exception.NotFoundException;
 
 import jakarta.validation.Valid;
@@ -33,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ItemController {
 
     private final ItemService itemService;
+    private final ItemSuggestionService itemSuggestionService;
 
     @PostMapping
     public ResponseEntity<ItemDto> createItem(@Valid @RequestBody final CreateItemDto itemDto) {
@@ -96,16 +98,16 @@ public class ItemController {
     @PostMapping(value = "/{itemId}/images/single", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ImageDto> addSingleImageToItem(
             @PathVariable final Long itemId,
-            @RequestParam("imageFile") MultipartFile imageFile) {
+            @RequestParam("imageFile") final MultipartFile imageFile) {
         try {
             if (imageFile.isEmpty()) {
                 return ResponseEntity.badRequest().build(); // Ou un message d'erreur plus spécifique
             }
             final ImageDto newImage = itemService.addImageToItem(itemId, imageFile);
             return new ResponseEntity<>(newImage, HttpStatus.CREATED);
-        } catch (NotFoundException e) {
+        } catch (final NotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (RuntimeException e) { // Pour les erreurs de stockage ou de traitement de fichier
+        } catch (final RuntimeException e) { // Pour les erreurs de stockage ou de traitement de fichier
             log.error("Error uploading single image for item {}: {}", itemId, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -114,16 +116,16 @@ public class ItemController {
     @PostMapping(value = "/{itemId}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ItemDto> addMultipleImagesToItem(
             @PathVariable final Long itemId,
-            @RequestParam("imageFiles") List<MultipartFile> imageFiles) {
+            @RequestParam("imageFiles") final List<MultipartFile> imageFiles) {
         try {
             if (imageFiles.isEmpty() || imageFiles.stream().allMatch(MultipartFile::isEmpty)) {
                 return ResponseEntity.badRequest().build(); // Ou un message d'erreur
             }
             final ItemDto updatedItem = itemService.addImagesToItem(itemId, imageFiles);
             return ResponseEntity.ok(updatedItem);
-        } catch (NotFoundException e) {
+        } catch (final NotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (RuntimeException e) { // Pour les erreurs de stockage ou de traitement de fichier
+        } catch (final RuntimeException e) { // Pour les erreurs de stockage ou de traitement de fichier
             log.error("Error uploading multiple images for item {}: {}", itemId, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -134,9 +136,9 @@ public class ItemController {
         try {
             itemService.deleteItemImage(itemId, imageId);
             return ResponseEntity.noContent().build();
-        } catch (NotFoundException e) {
+        } catch (final NotFoundException e) {
             return ResponseEntity.notFound().build();
-        } catch (RuntimeException e) { // Pour les erreurs de suppression du stockage
+        } catch (final RuntimeException e) { // Pour les erreurs de suppression du stockage
             log.error("Error deleting image {} for item {}: {}", imageId, itemId, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -150,5 +152,17 @@ public class ItemController {
         } catch (final NotFoundException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @GetMapping("/suggestions")
+    public ResponseEntity<List<ItemDto>> getItemSuggestions(
+            @RequestParam(name = "strategy", required = false) final String strategyName) {
+        List<ItemDto> suggestedItems;
+        if (strategyName != null && !strategyName.trim().isEmpty()) {
+            suggestedItems = itemSuggestionService.getSuggestedItems(strategyName);
+        } else {
+            suggestedItems = itemSuggestionService.getSuggestedItems();
+        }
+        return ResponseEntity.ok(suggestedItems);
     }
 }

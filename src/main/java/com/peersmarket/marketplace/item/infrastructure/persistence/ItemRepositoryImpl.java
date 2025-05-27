@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.peersmarket.marketplace.item.application.port.out.ItemRepository;
 import com.peersmarket.marketplace.item.domain.model.Image;
 import com.peersmarket.marketplace.item.domain.model.Item;
+import com.peersmarket.marketplace.item.domain.model.ItemStatus;
 import com.peersmarket.marketplace.item.infrastructure.persistence.jpa.mapper.ImageMapper;
 import com.peersmarket.marketplace.item.infrastructure.persistence.jpa.mapper.ItemMapper;
 import com.peersmarket.marketplace.item.infrastructure.persistence.jpa.model.ImageEntity;
@@ -107,4 +108,12 @@ public class ItemRepositoryImpl implements ItemRepository {
                 .map(itemMapper::toDomain)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Item> findByStatusOrderByCreatedAtDesc(final ItemStatus status) {
+        return itemJpaRepository.findByStatusOrderByCreatedAtDesc(status).stream()
+                    .map(itemMapper::toDomain)
+                    .collect(Collectors.toList());
+    }                
 }
