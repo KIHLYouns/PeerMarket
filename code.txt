@@ -1,0 +1,493 @@
+// File: src/main/java/com/peersmarket/marketplace/message/application/dto/CreateMessageRequestDto.java
+package com.peersmarket.marketplace.message.application.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class CreateMessageRequestDto {
+    @NotBlank(message = "Le contenu du message ne peut pas être vide.")
+    @Size(min = 1, max = 1000, message = "Le message doit contenir entre 1 et 1000 caractères.")
+    private String content;
+
+    @NotNull(message = "L'ID de l'expéditeur ne peut pas être nul.")
+    private Long senderId; // Sera typiquement l'utilisateur authentifié
+
+    @NotNull(message = "L'ID de la conversation ne peut pas être nul.")
+    private Long conversationId;
+}
+
+
+
+// File: src/main/java/com/peersmarket/marketplace/message/application/dto/MessageDto.java
+package com.peersmarket.marketplace.message.application.dto;
+
+import java.time.LocalDateTime;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class MessageDto {
+    private Long id;
+    private String content;
+    private LocalDateTime timestamp;
+    private Long senderId;
+    private String senderUsername;
+    private Long conversationId;
+    private boolean isRead;
+}
+
+
+
+// File: src/main/java/com/peersmarket/marketplace/user/application/dto/UserProfileViewDto.java
+package com.peersmarket.marketplace.user.application.dto;
+
+import com.peersmarket.marketplace.item.application.dto.ItemDto;
+import com.peersmarket.marketplace.review.application.dto.ReviewDto;
+import com.peersmarket.marketplace.saveditem.application.dto.SavedItemDto;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserProfileViewDto {
+    private Long id;
+    private String username;
+    private String email;
+    private String avatarUrl;
+    private String bio;
+    private LocalDate joinDate;
+    private AddressDto address;
+    private boolean verified;
+
+    private List<ItemDto> itemsListed;
+    private List<ReviewDto> reviewsReceived;
+    private List<ReviewDto> reviewsGiven;
+    private List<SavedItemDto> savedItems;
+}
+
+
+// File: src/main/java/com/peersmarket/marketplace/user/application/dto/AppUserDto.java
+package com.peersmarket.marketplace.user.application.dto;
+
+import java.time.LocalDate;
+
+import com.peersmarket.marketplace.user.domain.model.AppUserRole;
+import com.peersmarket.marketplace.user.domain.model.UserStatus;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+public class AppUserDto {
+    private Long id;
+    private String username;
+    private String email;
+    private String avatarUrl;
+    private String bio;
+    private LocalDate joinDate;
+    private UserStatus status;
+    private AppUserRole role;
+    private Boolean verified;
+    private AddressDto address;
+    private Double averageRating;
+    private Integer ratingCount;
+}
+
+
+
+// File: src/main/java/com/peersmarket/marketplace/user/application/dto/CreateUserDto.java
+package com.peersmarket.marketplace.user.application.dto;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+
+@Data
+public class CreateUserDto {
+
+    @NotBlank(message = "Le nom d'utilisateur ne peut pas être vide.")
+    @Size(min = 3, max = 50, message = "Le nom d'utilisateur doit contenir entre 3 et 50 caractères.")
+    private String username;
+
+    @NotBlank(message = "L'email ne peut pas être vide.")
+    @Email(message = "Le format de l'email est invalide.")
+    private String email;
+
+    @NotBlank(message = "Le mot de passe ne peut pas être vide.")
+    @Size(min = 8, message = "Le mot de passe doit contenir au moins 8 caractères.")
+    private String password;
+
+    private String avatarUrl;
+
+    private String bio;
+
+    @Valid
+    private CreateAddressDto address;
+}
+
+
+
+// File: src/main/java/com/peersmarket/marketplace/user/application/dto/CreateAddressDto.java
+package com.peersmarket.marketplace.user.application.dto;
+
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
+@Data
+public class CreateAddressDto {
+
+    @NotNull(message = "La longitude ne peut pas être nulle.")
+    @DecimalMin(value = "-180.0", message = "La longitude doit être comprise entre -180.0 et 180.0.")
+    @DecimalMax(value = "180.0", message = "La longitude doit être comprise entre -180.0 et 180.0.")
+    private Double longitude;
+
+    @NotNull(message = "La latitude ne peut pas être nulle.")
+    @DecimalMin(value = "-90.0", message = "La latitude doit être comprise entre -90.0 et 90.0.")
+    @DecimalMax(value = "90.0", message = "La latitude doit être comprise entre -90.0 et 90.0.")
+    private Double latitude;
+}
+
+
+
+// File: src/main/java/com/peersmarket/marketplace/user/application/dto/AddressDto.java
+package com.peersmarket.marketplace.user.application.dto;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+public class AddressDto {
+    private Long id;
+    private CityDto city;
+    private Double longitude;
+    private Double latitude;
+}
+
+
+// File: src/main/java/com/peersmarket/marketplace/user/application/dto/CityDto.java
+package com.peersmarket.marketplace.user.application.dto;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+public class CityDto {
+    private Long id;
+    private String name;
+}
+
+
+// File: src/main/java/com/peersmarket/marketplace/saveditem/application/dto/SavedItemDto.java
+package com.peersmarket.marketplace.saveditem.application.dto;
+
+import java.time.LocalDateTime;
+
+import com.peersmarket.marketplace.item.application.dto.ItemDto;
+
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class SavedItemDto {
+    private Long id;
+
+    @NotNull(message = "L'ID de l'utilisateur ne peut pas être nul")
+    private Long userId;
+
+    @NotNull(message = "L'ID de l'article ne peut pas être nul")
+    private Long itemId;
+
+    private LocalDateTime savedAt;
+
+    // Optionnel: pour renvoyer les détails de l'item directement
+    private ItemDto item;
+}
+
+
+// File: src/main/java/com/peersmarket/marketplace/saveditem/application/dto/CreateSavedItemDto.java
+package com.peersmarket.marketplace.saveditem.application.dto;
+
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class CreateSavedItemDto {
+    @NotNull(message = "L'ID de l'utilisateur ne peut pas être nul")
+    private Long userId;
+
+    @NotNull(message = "L'ID de l'article ne peut pas être nul")
+    private Long itemId;
+}
+
+
+
+// File: src/main/java/com/peersmarket/marketplace/item/application/dto/CategoryDto.java
+package com.peersmarket.marketplace.item.application.dto;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+public class CategoryDto {
+    private Long id;
+    private String name;
+}
+
+
+
+// File: src/main/java/com/peersmarket/marketplace/item/application/dto/ImageDto.java
+package com.peersmarket.marketplace.item.application.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ImageDto {
+    private Long id;
+
+    @NotBlank(message = "L'URL de l'image ne peut pas être vide")
+    @Size(max = 2048, message = "L'URL de l'image ne peut pas dépasser 2048 caractères")
+    private String url;
+
+    private Long itemId;
+}
+
+
+
+// File: src/main/java/com/peersmarket/marketplace/item/application/dto/ItemDto.java
+package com.peersmarket.marketplace.item.application.dto;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import com.peersmarket.marketplace.item.domain.model.ItemCondition;
+import com.peersmarket.marketplace.item.domain.model.ItemStatus;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+public class ItemDto {
+    private Long id;
+    private String title;
+    private String description;
+    private BigDecimal price;
+    private ItemCondition condition;
+    private ItemStatus status;
+    private Long sellerId;
+    private String sellerUsername;
+    private String sellerAvatarUrl;
+    private Double sellerAverageRating;
+    private Integer sellerRatingCount;
+    private Long sellerCityId;
+    private String sellerCityName;
+    private Long categoryId;
+    private String categoryName;
+    private LocalDateTime createdAt;
+    private Integer viewCount;
+    private List<ImageDto> images;
+}
+
+
+
+// File: src/main/java/com/peersmarket/marketplace/item/application/dto/CreateItemDto.java
+package com.peersmarket.marketplace.item.application.dto;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.peersmarket.marketplace.item.domain.model.ItemCondition;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+public class CreateItemDto {
+    
+    @NotBlank(message = "Le titre ne peut pas être vide")
+    @Size(min = 3, max = 100, message = "Le titre doit contenir entre 3 et 100 caractères")
+    private String title;
+    
+    @Size(max = 1000, message = "La description ne peut pas dépasser 1000 caractères")
+    private String description;
+    
+    @NotNull(message = "Le prix ne peut pas être nul")
+    @DecimalMin(value = "0.01", message = "Le prix doit être supérieur à 0")
+    private BigDecimal price;
+    
+    @NotNull(message = "La condition ne peut pas être nulle")
+    private ItemCondition condition;
+    
+    @NotNull(message = "L'ID du vendeur ne peut pas être nul")
+    private Long sellerId;
+    
+    @NotNull(message = "L'ID de la catégorie ne peut pas être nul")
+    private Long categoryId;
+    
+    private List<ImageDto> images = new ArrayList<>();
+}
+
+
+// File: src/main/java/com/peersmarket/marketplace/review/application/dto/ReviewDto.java
+package com.peersmarket.marketplace.review.application.dto;
+
+import java.time.LocalDateTime;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ReviewDto {
+    private Long id;
+    private int rating;
+    private String comment;
+    private Long reviewerId;
+    private String reviewerUsername; // Pour afficher facilement qui a écrit l'avis
+    private Long revieweeId;
+    private String revieweeUsername; // Pour afficher facilement qui a été évalué
+    private LocalDateTime createdAt;
+}
+
+
+// File: src/main/java/com/peersmarket/marketplace/review/application/dto/CreateReviewRequestDto.java
+package com.peersmarket.marketplace.review.application.dto;
+
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class CreateReviewRequestDto {
+
+    @NotNull(message = "Rating cannot be null")
+    @Min(value = 1, message = "Rating must be at least 1")
+    @Max(value = 5, message = "Rating must be at most 5")
+    private Integer rating;
+
+    @NotBlank(message = "Comment cannot be blank")
+    @Size(max = 1000, message = "Comment cannot exceed 1000 characters")
+    private String comment;
+
+    @NotNull(message = "Reviewee ID cannot be null")
+    private Long revieweeId;
+
+    @NotNull(message = "Reviewer ID cannot be null")
+    private Long reviewerId;
+}
+
+
+
+// File: src/main/java/com/peersmarket/marketplace/conversation/application/dto/ConversationDto.java
+package com.peersmarket.marketplace.conversation.application.dto;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ConversationDto {
+    private Long id;
+    private Long itemId;
+    private String itemTitle; // Pour affichage rapide
+    private List<Long> participantIds;
+    private List<String> participantUsernames; // Pour affichage rapide
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private String lastMessageContent;
+    private LocalDateTime lastMessageTimestamp;
+    private Long lastMessageSenderId;
+    private String lastMessageSenderUsername;
+}
+
+
+
+// File: src/main/java/com/peersmarket/marketplace/conversation/application/dto/CreateConversationRequestDto.java
+package com.peersmarket.marketplace.conversation.application.dto;
+
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class CreateConversationRequestDto {
+    @NotNull(message = "L'ID de l'article ne peut pas être nul.")
+    private Long itemId;
+
+    @NotNull(message = "L'ID de l'initiateur ne peut pas être nul.")
+    private Long initiatorId; // L'utilisateur qui démarre la conversation (souvent l'acheteur potentiel)
+
+    // Le premier message est souvent inclus lors de la création d'une conversation
+    @NotNull(message = "Le contenu du premier message ne peut pas être nul.")
+    @Size(min = 1, max = 1000, message = "Le message doit contenir entre 1 et 1000 caractères.")
+    private String initialMessageContent;
+}
+
+
+

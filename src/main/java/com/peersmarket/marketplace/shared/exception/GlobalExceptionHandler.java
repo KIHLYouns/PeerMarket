@@ -11,9 +11,15 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import com.peersmarket.marketplace.auth.dto.ErrorResponse;
+
+import io.jsonwebtoken.JwtException;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import javax.naming.AuthenticationException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
@@ -39,6 +45,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 
         return new ResponseEntity<>(body, headers, status);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentialsException(final AuthenticationException ex) {
+        final ErrorResponse error = new ErrorResponse("UNAUTHORIZED 401", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ErrorResponse> handleJwtException(final JwtException ex) {
+        final ErrorResponse error = new ErrorResponse("INTERNAL_SERVER_ERROR 500", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
     // You can add other @ExceptionHandler methods here for different exceptions

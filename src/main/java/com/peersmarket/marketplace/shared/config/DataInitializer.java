@@ -11,6 +11,7 @@ import com.peersmarket.marketplace.item.domain.model.ItemStatus;
 import com.peersmarket.marketplace.user.application.port.out.AppUserRepository;
 import com.peersmarket.marketplace.user.application.port.out.CityRepository;
 import com.peersmarket.marketplace.review.application.port.out.ReviewRepository;
+import com.peersmarket.marketplace.review.application.event.ReviewCreatedEvent; // AJOUT
 import com.peersmarket.marketplace.user.domain.model.Address;
 import com.peersmarket.marketplace.user.domain.model.AppUser;
 import com.peersmarket.marketplace.user.domain.model.AppUserRole;
@@ -24,10 +25,9 @@ import com.peersmarket.marketplace.conversation.application.port.out.Conversatio
 import com.peersmarket.marketplace.conversation.domain.model.Conversation;
 import com.peersmarket.marketplace.message.application.port.out.MessageRepository;
 import com.peersmarket.marketplace.message.domain.model.Message;
-// Supposons que vous avez une entité Address si AppUser a une relation avec Address
-// import com.peersmarket.marketplace.user.domain.model.Address;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.ApplicationEventPublisher; // AJOUT
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +49,7 @@ public class DataInitializer implements CommandLineRunner {
     private final MessageRepository messageRepository;
     private final ReviewRepository reviewRepository;
     private final SavedItemRepository savedItemRepository;
+    private final ApplicationEventPublisher eventPublisher; // AJOUT
 
     public DataInitializer(AppUserRepository appUserRepository,
             CategoryRepository categoryRepository,
@@ -58,7 +59,8 @@ public class DataInitializer implements CommandLineRunner {
             ConversationRepository conversationRepository,
             MessageRepository messageRepository,
             ReviewRepository reviewRepository,
-            SavedItemRepository savedItemRepository) {
+            SavedItemRepository savedItemRepository,
+            ApplicationEventPublisher eventPublisher) { // AJOUT
         this.appUserRepository = appUserRepository;
         this.categoryRepository = categoryRepository;
         this.itemRepository = itemRepository;
@@ -68,6 +70,7 @@ public class DataInitializer implements CommandLineRunner {
         this.messageRepository = messageRepository;
         this.reviewRepository = reviewRepository;
         this.savedItemRepository = savedItemRepository;
+        this.eventPublisher = eventPublisher; // AJOUT
     }
 
     @Override
@@ -76,7 +79,6 @@ public class DataInitializer implements CommandLineRunner {
         System.out.println("Starting Data Initialization...");
 
         // 0. Cities
-        // Vérification d'existence plus robuste pour City
         Optional<City> parisOpt = cityRepository.findByNameIgnoreCase("Paris");
         Optional<City> lyonOpt = cityRepository.findByNameIgnoreCase("Lyon");
 
@@ -87,7 +89,7 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         // 1. Users
-        AppUser user1, user2, user3;
+        AppUser user1, user2, user3, user4;
 
         Optional<AppUser> user1Opt = appUserRepository.findByUsername("AliceWonder");
         user1 = user1Opt.orElseGet(() -> {
@@ -98,7 +100,7 @@ public class DataInitializer implements CommandLineRunner {
             u.setVerified(true);
             Address address1 = new Address();
             address1.setCity(paris);
-            u.setAddress(address1); // Supposant que AppUser a setAddress(Address address)
+            u.setAddress(address1);
             return appUserRepository.save(u);
         });
 
@@ -108,9 +110,9 @@ public class DataInitializer implements CommandLineRunner {
                     AppUserRole.USER);
             u.setBio("Bricoleur du dimanche, vends outils et créations.");
             u.setAvatarUrl("https://i.pravatar.cc/150?u=bob");
-            // Address address2 = new Address();
-            // address2.setCity(lyon);
-            // u.setAddress(address2);
+            Address address2 = new Address();
+            address2.setCity(paris);
+            u.setAddress(address2);
             return appUserRepository.save(u);
         });
 
@@ -121,11 +123,25 @@ public class DataInitializer implements CommandLineRunner {
             u.setBio("Collectionneur de chapeaux et accessoires.");
             u.setAvatarUrl("https://i.pravatar.cc/150?u=charlie");
             u.setVerified(true);
-            // Address address3 = new Address();
-            // address3.setCity(paris);
-            // u.setAddress(address3);
+            Address address3 = new Address();
+            address3.setCity(lyon);
+            u.setAddress(address3);
             return appUserRepository.save(u);
         });
+
+        /* Optional<AppUser> user4Opt = appUserRepository.findByUsername("KIHLYouns");
+        user4 = user4Opt.orElseGet(() -> {
+            AppUser u = new AppUser("KIHLYouns", new Email("kihl@example.com"), new Password("testtest!"),
+                    AppUserRole.USER);
+            u.setBio("Passionnée de vintage et d'objets uniques.");
+            u.setAvatarUrl("https://i.pravatar.cc/150?u=kihl");
+            u.setVerified(true);
+            Address address1 = new Address();
+            address1.setCity(paris);
+            u.setAddress(address1);
+            return appUserRepository.save(u);
+        }); */
+
         if (!user1Opt.isPresent() || !user2Opt.isPresent() || !user3Opt.isPresent()) {
             System.out.println("Users created or loaded.");
         }
@@ -146,11 +162,9 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         // 3. Items & Images
-        // Pour les items, on va vérifier par titre pour éviter les doublons si on
-        // relance
         Optional<Item> item1Opt = itemRepository.findByTitleContaining("Super Vélo de Course").stream().findFirst();
         Item item1 = item1Opt.orElseGet(() -> {
-            Item i = new Item(); // Supposant un constructeur par défaut et des setters
+            Item i = new Item();
             i.setTitle("Super Vélo de Course");
             i.setDescription("Vélo de course en excellent état, peu servi.");
             i.setPrice(new BigDecimal("250.00"));
@@ -159,6 +173,7 @@ public class DataInitializer implements CommandLineRunner {
             i.setSeller(user1);
             i.setCategory(bikes);
             i.setCreatedAt(LocalDateTime.now().minusDays(5));
+            i.setViewCount(3); // Assurer l'initialisation
             Item savedItem = itemRepository.save(i);
             imageRepository
                     .save(new Image("https://placehold.co/600x400/FF0000/FFFFFF?text=Velo1_1.png", savedItem.getId()));
@@ -179,6 +194,7 @@ public class DataInitializer implements CommandLineRunner {
             i.setSeller(user2);
             i.setCategory(books);
             i.setCreatedAt(LocalDateTime.now().minusDays(10));
+            i.setViewCount(0); // Assurer l'initialisation
             Item savedItem = itemRepository.save(i);
             imageRepository
                     .save(new Image("https://placehold.co/600x400/00FF00/FFFFFF?text=Livre1.png", savedItem.getId()));
@@ -197,6 +213,7 @@ public class DataInitializer implements CommandLineRunner {
             i.setSeller(user1);
             i.setCategory(electronics);
             i.setCreatedAt(LocalDateTime.now().minusDays(2));
+            i.setViewCount(0); // Assurer l'initialisation
             Item savedItem = itemRepository.save(i);
             imageRepository
                     .save(new Image("https://placehold.co/600x400/0000FF/FFFFFF?text=Casque1.png", savedItem.getId()));
@@ -214,6 +231,7 @@ public class DataInitializer implements CommandLineRunner {
             i.setSeller(user3);
             i.setCategory(bikes);
             i.setCreatedAt(LocalDateTime.now().minusDays(1));
+            i.setViewCount(0); // Assurer l'initialisation
             Item savedItem = itemRepository.save(i);
             imageRepository
                     .save(new Image("https://placehold.co/600x400/FFFF00/000000?text=VTT1.png", savedItem.getId()));
@@ -224,7 +242,6 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         // 4. Conversations & Messages
-        // Pour les conversations, on peut vérifier par item et participants
         Optional<Conversation> conv1Opt = conversationRepository.findByItemIdAndUserIds(item1.getId(), user2.getId(),
                 user1.getId());
         if (conv1Opt.isEmpty()) {
@@ -238,7 +255,7 @@ public class DataInitializer implements CommandLineRunner {
                     .createdAt(LocalDateTime.now().minusDays(3))
                     .updatedAt(LocalDateTime.now().minusDays(2))
                     .build();
-            Conversation conv1 = conversationRepository.save(conv1ToSave); // Sauvegarder d'abord pour obtenir l'ID
+            Conversation conv1 = conversationRepository.save(conv1ToSave);
 
             Message msg1_1 = Message.builder().conversation(conv1).sender(user2)
                     .content("Bonjour, votre vélo est-il toujours disponible ?")
@@ -288,8 +305,6 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         // 5. Reviews
-        // Vérifier si une review existe déjà entre ces utilisateurs
-        // Pour user2 review user1:
         List<Review> reviewsFromUser2 = reviewRepository.findByReviewerId(user2.getId());
         boolean reviewExistsUser2ToUser1 = reviewsFromUser2.stream()
                 .anyMatch(review -> review.getReviewee().getId().equals(user1.getId()));
@@ -299,10 +314,17 @@ public class DataInitializer implements CommandLineRunner {
                     .comment("Vendeuse très sympa, vélo en parfait état !").createdAt(LocalDateTime.now().minusDays(1))
                     .build();
             reviewRepository.save(review1);
-            System.out.println("Review 1 created.");
+            // Publier l'événement pour mettre à jour les stats de user1
+            eventPublisher.publishEvent(new ReviewCreatedEvent(
+                    this,
+                    review1.getId(),
+                    review1.getReviewee().getId(),
+                    review1.getRating(),
+                    review1.getCreatedAt()
+            ));
+            System.out.println("Review 1 created and event published.");
         }
 
-        // Pour user1 review user3:
         List<Review> reviewsFromUser1 = reviewRepository.findByReviewerId(user1.getId());
         boolean reviewExistsUser1ToUser3 = reviewsFromUser1.stream()
                 .anyMatch(review -> review.getReviewee().getId().equals(user3.getId()));
@@ -311,7 +333,15 @@ public class DataInitializer implements CommandLineRunner {
             Review review2 = Review.builder().reviewer(user1).reviewee(user3).rating(4)
                     .comment("Acheteur sérieux, transaction rapide.").createdAt(LocalDateTime.now()).build();
             reviewRepository.save(review2);
-            System.out.println("Review 2 created.");
+            // Publier l'événement pour mettre à jour les stats de user3
+            eventPublisher.publishEvent(new ReviewCreatedEvent(
+                    this,
+                    review2.getId(),
+                    review2.getReviewee().getId(),
+                    review2.getRating(),
+                    review2.getCreatedAt()
+            ));
+            System.out.println("Review 2 created and event published.");
         }
 
         // 6. SavedItems

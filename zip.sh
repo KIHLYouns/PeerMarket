@@ -7,7 +7,7 @@ output_file="code.txt"
 > "$output_file"
 
 # Find all .java and .fxml files inside the src directory and its subdirectories
-find src -type f \( -name "*.java" -o -name "*.erd" \) | while read -r file; do
+find src -type f \( -name "*Dto.java" -o -name "*.test" \) | while read -r file; do
     # Append the file path as a header
     echo "// File: $file" >> "$output_file"
     # Append the file content

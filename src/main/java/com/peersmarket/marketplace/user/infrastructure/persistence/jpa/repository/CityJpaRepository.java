@@ -1,5 +1,6 @@
 package com.peersmarket.marketplace.user.infrastructure.persistence.jpa.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,4 +9,5 @@ import com.peersmarket.marketplace.user.infrastructure.persistence.jpa.model.Cit
 
 public interface CityJpaRepository extends JpaRepository<CityEntity, Long> {
     Optional<CityEntity> findByNameIgnoreCase(String name);
+    List<CityEntity> findAllByOrderByNameAsc();
 }
